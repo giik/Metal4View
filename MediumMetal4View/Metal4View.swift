@@ -9,15 +9,14 @@ import MetalKit
 import SwiftUI
 
 struct Metal4View: NSViewRepresentable {
-  // Needed to resolve the color.
+  // Needed to resolve the color value (will be set by parent).
   @Environment(\.self) var environment
   var color: Color
 
-  func makeCoordinator() -> Metal4ViewCoordinator {
-    Metal4ViewCoordinator()
-  }
+  // Implements drawing.
+  func makeCoordinator() -> Metal4ViewCoordinator { Metal4ViewCoordinator() }
 
-  // Creating the wrapped MTKView
+  // The wrapped MTKView.
   func makeNSView(context: Context) -> MTKView {
     let view = MTKView()
     view.delegate = context.coordinator
@@ -25,9 +24,9 @@ struct Metal4View: NSViewRepresentable {
     return view
   }
 
-  // Called when the view needs to be updated, incl. because the value of the Binding changed. It
-  // gives us a chance to signal that drawing is needed which will happen when the delegate's draw()
-  // method is called.
+  // Called by SwiftUI when the view needs an update, incl. because the value
+  // of the bound environment changed. Gives us a chance to signal that drawing
+  // is needed.
   func updateNSView(_ view: MTKView, context: Context) {
     let resolved = self.color.resolve(in: self.environment)
     view.clearColor = MTLClearColor(
@@ -36,6 +35,7 @@ struct Metal4View: NSViewRepresentable {
       blue: Double(resolved.blue),
       alpha: Double(resolved.opacity)
     )
+    // Calling draw explicitly not needed.
     view.needsDisplay = true
   }
 }
@@ -54,17 +54,19 @@ class Metal4ViewCoordinator: NSObject, MTKViewDelegate {
     else {
       fatalError("unable to create metal artifacts")
     }
-
     self.device = d
     self.commandQueue = queue
     self.commandBuffer = cmdBuffer
     self.allocator = alloc
-
     super.init()
   }
 
   func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 
+  // The general structure is beginning one or more buffers, encoding drawing
+  // commands, and ending the encoding and buffers.
+  // Next, the buffers are committed after calling waitForDrawable.
+  // Finally, we signal the drawabble and present it.
   func draw(in view: MTKView) {
     guard let drawable = view.currentDrawable else { return }
     commandBuffer.beginCommandBuffer(allocator: allocator)
