@@ -1,0 +1,27 @@
+//
+// Shaders.swift
+//
+// Created for MediumMetal4View
+//     on 11/16/25
+//     by GIIK Web Development
+
+#include <metal_stdlib>
+using namespace metal;
+
+struct Vertex {
+  float4 position [[position]];
+  float pointSize [[point_size]];
+  float4 color;
+};
+
+vertex Vertex vertex_f(uint vertexID [[vertex_id]]) {
+  return {
+    .position = float4(0, 0, 0, 1),
+    .pointSize = 20,
+    .color = float4(1, 0, 0, 1),
+  };
+}
+
+fragment float4 fragment_f(Vertex in [[stage_in]]) {
+  return in.color;
+}
