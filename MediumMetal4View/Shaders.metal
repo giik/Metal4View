@@ -14,14 +14,16 @@ struct Vertex {
   float4 color;
 };
 
-vertex Vertex vertex_f(uint vertexID [[vertex_id]]) {
+vertex Vertex vertex_f(uint id [[vertex_id]]) {
   return {
     .position = float4(0, 0, 0, 1),
-    .pointSize = 20,
+    .pointSize = 200,
     .color = float4(1, 0, 0, 1),
   };
 }
 
-fragment float4 fragment_f(Vertex in [[stage_in]]) {
+fragment float4 fragment_f(Vertex in [[stage_in]],
+                           float2 pointPos [[point_coord]]) {
+  if (distance(0.5, pointPos) > 0.5) { discard_fragment(); }
   return in.color;
 }
